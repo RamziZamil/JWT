@@ -10,18 +10,24 @@ const SignIn = () => {
   const handleSignin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/signin", { username, password }, { withCredentials: true });
+      await axios.post(
+        "http://localhost:5000/signin",
+        { username, password },
+        { withCredentials: true }
+      );
       alert("Login successful!");
       navigate("/");
     } catch (error) {
-      alert(error.response.data.message);
+      alert(error.response?.data?.message || "Login failed");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800">Sign In</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800">
+          Sign In
+        </h2>
         <form className="mt-4" onSubmit={handleSignin}>
           <input
             type="text"
@@ -40,7 +46,10 @@ const SignIn = () => {
           </button>
         </form>
         <p className="mt-3 text-center text-gray-600">
-          Don't have an account? <a href="/signup" className="text-blue-500">Sign up</a>
+          Don't have an account?{" "}
+          <a href="/signup" className="text-blue-500">
+            Sign up
+          </a>
         </p>
       </div>
     </div>
