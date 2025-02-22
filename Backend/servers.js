@@ -10,11 +10,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
-const users = []; // In-memory user storage
+const users = [];
 
-const SECRET_KEY = "your_secret_key"; // Use dotenv in production
+const SECRET_KEY = "your_secret_key";
 
-// Middleware to verify token
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) return res.status(403).json({ message: "Unauthorized" });
@@ -26,7 +25,6 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// Signup Route
 app.post("/signup", (req, res) => {
   const { username, password } = req.body;
   if (users.find((user) => user.username === username)) {
@@ -37,7 +35,6 @@ app.post("/signup", (req, res) => {
   res.json({ message: "User registered successfully" });
 });
 
-// Signin Route
 app.post("/signin", (req, res) => {
   const { username, password } = req.body;
   const user = users.find(
@@ -52,23 +49,20 @@ app.post("/signin", (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false, // Set to true in production with HTTPS
+    secure: false,
     sameSite: "strict",
   });
 
   res.json({ message: "Login successful" });
 });
 
-// Profile Route (Protected)
 app.get("/profile", verifyToken, (req, res) => {
   res.json({ message: "Welcome to the profile page", user: req.user });
 });
 
-// Logout Route
 app.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.json({ message: "Logged out successfully" });
 });
 
-// Start Server
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));
