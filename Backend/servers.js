@@ -1,20 +1,22 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
+const dotenv = require("dotenv");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(
+  require("cors")({ origin: "http://localhost:5173", credentials: true })
+);
 
-const users = []; // In-memory user storage
+const users = []; // Temporary in-memory storage
 
-const SECRET_KEY = "your_secret_key"; // Use dotenv in production
+const SECRET_KEY = "your_secret_key"; // Store in .env in production
 
-// Middleware to verify token
+// Middleware to check JWT token
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) return res.status(403).json({ message: "Unauthorized" });
@@ -27,24 +29,25 @@ const verifyToken = (req, res, next) => {
 };
 
 // Signup Route
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
+
   if (users.find((user) => user.username === username)) {
     return res.status(400).json({ message: "User already exists" });
   }
 
-  users.push({ username, password });
+  const hashedPassword = await bcrypt.hash(password, 10);
+  users.push({ username, password: hashedPassword });
+
   res.json({ message: "User registered successfully" });
 });
 
 // Signin Route
-app.post("/signin", (req, res) => {
+app.post("/signin", async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(
-    (user) => user.username === username && user.password === password
-  );
+  const user = users.find((user) => user.username === username);
 
-  if (!user) {
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
@@ -52,7 +55,7 @@ app.post("/signin", (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: false, // Set to true in production with HTTPS
+    secure: false, // Set to true in production
     sameSite: "strict",
   });
 
